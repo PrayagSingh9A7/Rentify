@@ -8,9 +8,9 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-9 h-9 bg-accent rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">N</span>
+                <span className="text-white font-bold text-lg">R</span>
               </div>
-              <span className="font-display font-bold text-xl">Rentify</span>
+              <span className="font-display font-bold text-xl">entify</span>
             </div>
             <p className="text-sm text-white/50 leading-relaxed max-w-xs">
               India's most trusted rental platform for students, working professionals and families. Find verified PGs, flats and rooms near you.
