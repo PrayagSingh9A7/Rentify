@@ -30,7 +30,7 @@ export function ForgotPasswordPage() {
             <div className="w-9 h-9 bg-accent rounded-xl flex items-center justify-center">
               <span className="text-white font-bold text-lg">N</span>
             </div>
-            <span className="font-display font-bold text-xl">nestify</span>
+            <span className="font-display font-bold text-xl">rentify</span>
           </Link>
           <h1 className="font-display text-3xl font-bold mb-1">Reset Password</h1>
           <p className="text-text-secondary text-sm">We'll send a reset link to your email</p>

@@ -1,7 +1,7 @@
 {
-  "name": "nestify-server",
+  "name": "rentify-server",
   "version": "1.0.0",
-  "description": "Nestify rental platform backend",
+  "description": "rentify rental platform backend",
   "main": "index.js",
   "type": "module",
   "scripts": {

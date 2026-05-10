@@ -69,7 +69,7 @@ export const forgotPassword = async (req, res) => {
     const message = `You requested a password reset. Click this link to reset: ${resetUrl}\n\nThis link expires in 10 minutes. If you didn't request this, ignore this email.`;
 
     try {
-      await sendEmail({ to: user.email, subject: 'Nestify Password Reset', text: message });
+      await sendEmail({ to: user.email, subject: 'rentify Password Reset', text: message });
       res.json({ success: true, message: 'Password reset email sent' });
     } catch {
       user.resetPasswordToken = undefined;

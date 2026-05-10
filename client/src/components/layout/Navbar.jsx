@@ -8,7 +8,7 @@ const Logo = () => (
     <div className="w-9 h-9 bg-accent rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
       <span className="text-white font-bold text-lg">N</span>
     </div>
-    <span className="font-display font-bold text-xl text-text-primary">nestify</span>
+    <span className="font-display font-bold text-xl text-text-primary">rentify</span>
   </Link>
 );
 
