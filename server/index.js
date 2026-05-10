@@ -67,7 +67,7 @@ app.use('/api/maintenance', maintenanceRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {
-  res.json({ success: true, message: 'rentify API is running 🏠', timestamp: new Date() });
+  res.json({ success: true, message: 'Rentify API is running 🏠', timestamp: new Date() });
 });
 
 // Error handler

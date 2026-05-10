@@ -36,7 +36,7 @@ export default function LoginPage() {
             <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center">
               <span className="text-white font-bold text-xl">N</span>
             </div>
-            <span className="font-display font-bold text-2xl text-white">rentify</span>
+            <span className="font-display font-bold text-2xl text-white">Rentify</span>
           </Link>
           <h2 className="font-display text-3xl font-bold text-white mb-4 leading-snug">
             "Found my dream PG within 2 days!"
@@ -60,7 +60,7 @@ export default function LoginPage() {
               <div className="w-9 h-9 bg-accent rounded-xl flex items-center justify-center">
                 <span className="text-white font-bold text-lg">N</span>
               </div>
-              <span className="font-display font-bold text-xl text-text-primary">rentify</span>
+              <span className="font-display font-bold text-xl text-text-primary">Rentify</span>
             </Link>
             <h1 className="font-display text-3xl font-bold text-text-primary mb-1">Welcome back</h1>
             <p className="text-text-secondary text-sm">Sign in to find your perfect home</p>

@@ -32,7 +32,7 @@ export default function ResetPasswordPage() {
             <div className="w-9 h-9 bg-accent rounded-xl flex items-center justify-center">
               <span className="text-white font-bold text-lg">N</span>
             </div>
-            <span className="font-display font-bold text-xl">rentify</span>
+            <span className="font-display font-bold text-xl">Rentify</span>
           </Link>
           <h1 className="font-display text-3xl font-bold mb-1">New Password</h1>
           <p className="text-text-secondary text-sm">Enter your new password below</p>

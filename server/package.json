@@ -1,7 +1,7 @@
 {
-  "name": "rentify-server",
+  "name": "Rentify-server",
   "version": "1.0.0",
-  "description": "rentify rental platform backend",
+  "description": "Rentify rental platform backend",
   "main": "index.js",
   "type": "module",
   "scripts": {

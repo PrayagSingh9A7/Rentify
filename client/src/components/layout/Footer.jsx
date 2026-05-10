@@ -10,7 +10,7 @@ export default function Footer() {
               <div className="w-9 h-9 bg-accent rounded-xl flex items-center justify-center">
                 <span className="text-white font-bold text-lg">N</span>
               </div>
-              <span className="font-display font-bold text-xl">rentify</span>
+              <span className="font-display font-bold text-xl">Rentify</span>
             </div>
             <p className="text-sm text-white/50 leading-relaxed max-w-xs">
               India's most trusted rental platform for students, working professionals and families. Find verified PGs, flats and rooms near you.
@@ -54,7 +54,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-white/30">© {new Date().getFullYear()} rentify Technologies Pvt. Ltd. All rights reserved.</p>
+          <p className="text-xs text-white/30">© {new Date().getFullYear()} Rentify Technologies Pvt. Ltd. All rights reserved.</p>
           <div className="flex items-center gap-1 text-xs text-white/30">
             <span>Made with</span>
             <span className="text-accent">♥</span>

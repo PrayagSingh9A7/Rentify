@@ -2,8 +2,8 @@ import { create } from 'zustand';
 import api from '../services/api';
 
 const useAuthStore = create((set, get) => ({
-  user: JSON.parse(localStorage.getItem('rentify_user') || 'null'),
-  token: localStorage.getItem('rentify_token') || null,
+  user: JSON.parse(localStorage.getItem('Rentify_user') || 'null'),
+  token: localStorage.getItem('Rentify_token') || null,
   loading: false,
   error: null,
 
@@ -11,8 +11,8 @@ const useAuthStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await api.post('/auth/login', { email, password });
-      localStorage.setItem('rentify_token', data.token);
-      localStorage.setItem('rentify_user', JSON.stringify(data.user));
+      localStorage.setItem('Rentify_token', data.token);
+      localStorage.setItem('Rentify_user', JSON.stringify(data.user));
       set({ user: data.user, token: data.token, loading: false });
       return { success: true };
     } catch (err) {
@@ -26,8 +26,8 @@ const useAuthStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await api.post('/auth/register', { name, email, password, role });
-      localStorage.setItem('rentify_token', data.token);
-      localStorage.setItem('rentify_user', JSON.stringify(data.user));
+      localStorage.setItem('Rentify_token', data.token);
+      localStorage.setItem('Rentify_user', JSON.stringify(data.user));
       set({ user: data.user, token: data.token, loading: false });
       return { success: true };
     } catch (err) {
@@ -38,15 +38,15 @@ const useAuthStore = create((set, get) => ({
   },
 
   logout: () => {
-    localStorage.removeItem('rentify_token');
-    localStorage.removeItem('rentify_user');
+    localStorage.removeItem('Rentify_token');
+    localStorage.removeItem('Rentify_user');
     set({ user: null, token: null });
   },
 
   refreshUser: async () => {
     try {
       const { data } = await api.get('/auth/me');
-      localStorage.setItem('rentify_user', JSON.stringify(data.user));
+      localStorage.setItem('Rentify_user', JSON.stringify(data.user));
       set({ user: data.user });
     } catch {
       get().logout();
@@ -55,7 +55,7 @@ const useAuthStore = create((set, get) => ({
 
   updateUser: (userData) => {
     const updated = { ...get().user, ...userData };
-    localStorage.setItem('rentify_user', JSON.stringify(updated));
+    localStorage.setItem('Rentify_user', JSON.stringify(updated));
     set({ user: updated });
   },
 

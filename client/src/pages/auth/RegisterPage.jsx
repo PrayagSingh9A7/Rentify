@@ -26,7 +26,7 @@ export default function RegisterPage() {
     }
     const result = await register(form.name, form.email, form.password, form.role);
     if (result.success) {
-      toast.success('Account created! Welcome to rentify 🏠');
+      toast.success('Account created! Welcome to Rentify 🏠');
       navigate(form.role === 'owner' ? '/dashboard' : '/');
     } else {
       toast.error(result.message);
@@ -48,7 +48,7 @@ export default function RegisterPage() {
             <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center">
               <span className="text-white font-bold text-xl">N</span>
             </div>
-            <span className="font-display font-bold text-2xl text-white">rentify</span>
+            <span className="font-display font-bold text-2xl text-white">Rentify</span>
           </Link>
           <h2 className="font-display text-3xl font-bold text-white mb-4">
             Join 2 lakh+ tenants finding great homes
@@ -73,7 +73,7 @@ export default function RegisterPage() {
               <div className="w-9 h-9 bg-accent rounded-xl flex items-center justify-center">
                 <span className="text-white font-bold text-lg">N</span>
               </div>
-              <span className="font-display font-bold text-xl">rentify</span>
+              <span className="font-display font-bold text-xl">Rentify</span>
             </Link>
             <h1 className="font-display text-3xl font-bold mb-1">Create Account</h1>
             <p className="text-text-secondary text-sm">Free forever. No credit card needed.</p>
