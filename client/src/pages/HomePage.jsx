@@ -1,218 +1,226 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-
+import api from '../services/api';
 import PropertyCard from '../components/property/PropertyCard';
 import { PropertyCardSkeleton } from '../components/common/Skeletons';
 
-import properties from '../data/properties';
+const formatNumber = (value) =>
+  typeof value === 'number' ? new Intl.NumberFormat('en-IN').format(value) : value;
 
-const HERO_CITIES = ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
+function SectionHeader({ title, subtitle, action }) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
+      <div>
+        <h2 className="font-display text-2xl sm:text-3xl font-bold text-text-primary">{title}</h2>
+        {subtitle && <p className="text-sm text-text-secondary mt-1">{subtitle}</p>}
+      </div>
+      {action}
+    </div>
+  );
+}
 
-const STATS = [
-  { value: '50,000+', label: 'Verified Listings' },
-  { value: '2L+', label: 'Happy Tenants' },
-  { value: '25+', label: 'Cities' },
-  { value: '4.8★', label: 'App Rating' },
-];
+function PropertyGrid({ properties, loading }) {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[1, 2, 3].map((item) => <PropertyCardSkeleton key={item} />)}
+      </div>
+    );
+  }
 
-const CATEGORIES = [
-  { type: 'pg', label: 'PG / Hostel', icon: '🏠', desc: 'All-inclusive stays', color: 'from-purple-400 to-purple-600' },
-  { type: 'flat', label: 'Full Flat', icon: '🏢', desc: '1BHK, 2BHK, 3BHK', color: 'from-blue-400 to-blue-600' },
-  { type: 'room', label: 'Single Room', icon: '🛏️', desc: 'Private rooms', color: 'from-green-400 to-green-600' },
-  { type: 'studio', label: 'Studio', icon: '🏙️', desc: 'Compact & cozy', color: 'from-pink-400 to-pink-600' },
-  { type: 'villa', label: 'Villa', icon: '🏡', desc: 'Premium spaces', color: 'from-amber-400 to-amber-600' },
-];
+  if (!properties?.length) return null;
 
-const FEATURES = [
-  { icon: '🔐', title: 'Zero Brokerage', desc: 'Connect directly with owners. No hidden fees or middlemen.' },
-  { icon: '✅', title: 'Verified Properties', desc: 'Every listing is physically verified by our team.' },
-  { icon: '🤖', title: 'AI-Powered Search', desc: 'Smart recommendations based on your preferences and budget.' },
-  { icon: '💬', title: 'Realtime Chat', desc: 'Chat instantly with owners. Schedule visits seamlessly.' },
-  { icon: '🗺️', title: 'Nearby Essentials', desc: 'Metro, grocery, gym, cafes — all mapped out for you.' },
-  { icon: '💰', title: 'Expense Predictor', desc: 'Know your total monthly cost before you move in.' },
-];
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {properties.map((property, index) => (
+        <motion.div key={property._id} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.04 }}>
+          <PropertyCard property={property} />
+        </motion.div>
+      ))}
+    </div>
+  );
+}
 
 export default function HomePage() {
   const [search, setSearch] = useState('');
+  const [homeData, setHomeData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Dummy data for now
-  const featured = properties;
-  const loading = false;
+  useEffect(() => {
+    let mounted = true;
+    api.get('/properties/home-data')
+      .then(({ data }) => {
+        if (mounted) setHomeData(data.data);
+      })
+      .catch(() => {
+        if (mounted) setHomeData(null);
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    navigate(`/search?search=${encodeURIComponent(search)}`);
+  const handleSearch = (event) => {
+    event.preventDefault();
+    const query = search.trim();
+    navigate(query ? `/search?search=${encodeURIComponent(query)}` : '/search');
   };
 
+  const featured = homeData?.featured || [];
+  const recentlyAdded = homeData?.recentlyAdded || [];
+  const popularCities = homeData?.popularCities || [];
+  const trendingLocations = homeData?.trendingLocations || [];
+  const popularTypes = homeData?.popularTypes || [];
+  const stats = homeData?.stats || [];
+  const heroCity = popularCities[0]?.city || 'your city';
+
   return (
-    <div>
-      {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center bg-dark overflow-hidden">
+    <div className="bg-surface-secondary">
+      <section className="relative min-h-[92vh] flex items-center bg-dark overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1600&q=80"
-            alt="bg"
-            className="w-full h-full object-cover opacity-20"
+            src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=1800&q=80"
+            alt="Premium rental apartment interior"
+            className="w-full h-full object-cover opacity-35"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-dark/60 via-dark/40 to-dark" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-dark" />
         </div>
 
-        <div className="relative z-10 max-w-5xl mx-auto px-4 text-center pt-20">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <span className="inline-flex items-center gap-2 bg-white/10 text-white/80 text-xs px-4 py-1.5 rounded-full mb-6 border border-white/20">
-              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-              50,000+ verified listings across 25 cities
-            </span>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-12 w-full">
+          <div className="max-w-3xl">
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+              <span className="inline-flex items-center gap-2 bg-white/10 text-white/80 text-xs px-4 py-1.5 rounded-full mb-6 border border-white/20">
+                Live rental inventory from Rentify
+              </span>
+              <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-bold text-white leading-tight mb-6">
+                Find a home that fits your life.
+              </h1>
+              <p className="text-white/70 text-base sm:text-lg max-w-2xl mb-8">
+                Search real listings, compare localities, schedule visits, message owners, and manage the rental journey in one place.
+              </p>
+            </motion.div>
 
-            <h1 className="font-display text-4xl sm:text-5xl md:text-7xl font-bold text-white leading-tight mb-6">
-              Find your perfect
-              <span className="block text-accent italic">home away</span>
-              from home
-            </h1>
-
-            <p className="text-white/60 text-base sm:text-lg max-w-xl mx-auto mb-10">
-              PGs, flats, rooms — verified & zero brokerage. For students, professionals and families.
-            </p>
-          </motion.div>
-
-          {/* Search */}
-          <motion.form
-            onSubmit={handleSearch}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto mb-10"
-          >
-            <div className="flex-1 relative">
+            <motion.form
+              onSubmit={handleSearch}
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="flex flex-col sm:flex-row gap-3 max-w-2xl mb-6"
+            >
               <input
                 type="text"
-                placeholder="Search by city, locality or landmark..."
+                placeholder={`Search ${heroCity}, locality, or landmark`}
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full px-5 py-4 rounded-2xl text-sm bg-white text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30"
+                onChange={(event) => setSearch(event.target.value)}
+                className="flex-1 px-5 py-4 rounded-2xl text-sm bg-white text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30"
               />
-            </div>
+              <button type="submit" className="btn-primary px-8 py-4 rounded-2xl">
+                Search Homes
+              </button>
+            </motion.form>
 
-            <button
-              type="submit"
-              className="bg-accent text-white px-8 py-4 rounded-2xl font-semibold text-sm hover:bg-accent-dark transition-all active:scale-95"
-            >
-              Search Homes
-            </button>
-          </motion.form>
-
-          {/* Cities */}
-          <div className="flex flex-wrap justify-center gap-2 mb-16">
-            <span className="text-white/40 text-xs pt-1">Popular:</span>
-
-            {HERO_CITIES.map((city) => (
-              <Link
-                key={city}
-                to={`/search?city=${city}`}
-                className="text-xs text-white/60 hover:text-white bg-white/10 hover:bg-white/15 px-3 py-1.5 rounded-full border border-white/10 transition-all"
-              >
-                {city}
-              </Link>
-            ))}
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto">
-            {STATS.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="font-display text-2xl font-bold text-white">{stat.value}</p>
-                <p className="text-xs text-white/40 mt-1">{stat.label}</p>
+            {popularCities.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {popularCities.slice(0, 6).map((city) => (
+                  <Link
+                    key={city.city}
+                    to={`/search?city=${encodeURIComponent(city.city)}`}
+                    className="text-xs text-white/70 hover:text-white bg-white/10 hover:bg-white/15 px-3 py-1.5 rounded-full border border-white/10 transition-all"
+                  >
+                    {city.city} · {city.listings}
+                  </Link>
+                ))}
               </div>
-            ))}
+            )}
           </div>
-        </div>
-      </section>
 
-      {/* Categories */}
-      <section className="py-16 px-4 max-w-7xl mx-auto">
-        <div className="text-center mb-10">
-          <h2 className="font-display text-3xl font-bold mb-2">
-            Browse by Type
-          </h2>
-
-          <p className="text-text-secondary text-sm">
-            Find exactly what suits your lifestyle
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          {CATEGORIES.map((cat, i) => (
-            <motion.div
-              key={cat.type}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-            >
-              <Link
-                to={`/search?type=${cat.type}`}
-                className="block card p-5 text-center"
-              >
-                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-xl mb-3 mx-auto`}>
-                  {cat.icon}
+          {stats.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mt-12">
+              {stats.slice(0, 4).map((stat) => (
+                <div key={stat.label} className="rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+                  <p className="font-display text-2xl font-bold text-white">
+                    {formatNumber(stat.value)}{stat.suffix || ''}
+                  </p>
+                  <p className="text-xs text-white/50 mt-1">{stat.label}</p>
                 </div>
-
-                <h3 className="font-semibold text-sm text-text-primary">
-                  {cat.label}
-                </h3>
-
-                <p className="text-xs text-text-muted mt-0.5">
-                  {cat.desc}
-                </p>
-              </Link>
-            </motion.div>
-          ))}
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Featured */}
-      <section className="py-16 px-4 max-w-7xl mx-auto">
-        <div className="flex items-end justify-between mb-10">
-          <div>
-            <h2 className="font-display text-3xl font-bold mb-2">
-              Featured Homes
-            </h2>
-
-            <p className="text-text-secondary text-sm">
-              Hand-picked premium properties
-            </p>
-          </div>
-
-          <Link
-            to="/search"
-            className="btn-outline text-xs py-2"
-          >
-            View All →
-          </Link>
-        </div>
-
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <PropertyCardSkeleton key={i} />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featured?.map((property) => (
-              <PropertyCard
-                key={property._id}
-                property={property}
-              />
-            ))}
-          </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-14 space-y-16">
+        {popularTypes.length > 0 && (
+          <section>
+            <SectionHeader title="Browse by real demand" subtitle="Property categories currently available on Rentify." />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {popularTypes.map((type) => (
+                <Link key={type.propertyType} to={`/search?propertyType=${encodeURIComponent(type.propertyType)}`} className="bg-white rounded-3xl p-5 shadow-card hover:shadow-card-hover transition-all">
+                  <p className="text-xs font-semibold text-accent mb-3">{type.listings} listings</p>
+                  <h3 className="font-display text-xl font-bold">{type.propertyType}</h3>
+                  <p className="text-sm text-text-muted mt-2">Avg rent Rs {formatNumber(type.averageRent)}/month</p>
+                </Link>
+              ))}
+            </div>
+          </section>
         )}
-      </section>
+
+        {featured.length > 0 && (
+          <section>
+            <SectionHeader
+              title="Featured homes"
+              subtitle="Owner-highlighted listings available right now."
+              action={<Link to="/search?sort=featured" className="btn-outline text-xs py-2">View all</Link>}
+            />
+            <PropertyGrid properties={featured} loading={loading} />
+          </section>
+        )}
+
+        {trendingLocations.length > 0 && (
+          <section>
+            <SectionHeader title="Trending locations" subtitle="Localities with the strongest listing activity and views." />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {trendingLocations.map((location) => (
+                <Link
+                  key={`${location.locality}-${location.city}`}
+                  to={`/search?city=${encodeURIComponent(location.city)}&search=${encodeURIComponent(location.locality)}`}
+                  className="bg-white rounded-3xl p-5 shadow-card hover:shadow-card-hover transition-all"
+                >
+                  <h3 className="font-semibold text-lg">{location.locality}</h3>
+                  <p className="text-sm text-text-muted">{location.city}</p>
+                  <div className="mt-4 flex items-center justify-between text-xs text-text-muted">
+                    <span>{location.listings} listings</span>
+                    <span>Rs {formatNumber(location.averageRent)}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {recentlyAdded.length > 0 && (
+          <section>
+            <SectionHeader
+              title="Recently added"
+              subtitle="Fresh listings from the database."
+              action={<Link to="/search?sort=newest" className="btn-outline text-xs py-2">Explore latest</Link>}
+            />
+            <PropertyGrid properties={recentlyAdded} loading={loading} />
+          </section>
+        )}
+
+        {!loading && !featured.length && !recentlyAdded.length && (
+          <section className="bg-white rounded-3xl p-10 text-center shadow-card">
+            <h2 className="font-display text-2xl font-bold mb-2">No active listings yet</h2>
+            <p className="text-sm text-text-muted">Once owners publish properties, Rentify will build this page from live inventory.</p>
+          </section>
+        )}
+      </main>
     </div>
   );
 }

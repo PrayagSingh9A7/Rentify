@@ -24,11 +24,14 @@ import EditPropertyPage from './pages/owner/EditPropertyPage';
 import MaintenancePage from './pages/MaintenancePage';
 import AIAdvisorPage from './pages/AIAdvisorPage';
 import NotFoundPage from './pages/NotFoundPage';
+import OwnerBookingsPage from "./pages/dashboard/OwnerBookingsPage";
+import OwnerInquiriesPage from "./pages/dashboard/OwnerInquiriesPage";
+import NotificationsPage from "./pages/dashboard/NotificationsPage";
 
 const ProtectedRoute = ({ children, ownerOnly = false }) => {
   const { user, token } = useAuthStore();
   if (!token) return <Navigate to="/login" replace />;
-  if (ownerOnly && user?.role !== 'owner') return <Navigate to="/" replace />;
+  if (ownerOnly && !['owner', 'admin'].includes(user?.role)) return <Navigate to="/" replace />;
   return children;
 };
 
@@ -60,6 +63,9 @@ function AppContent() {
           <Route path="/dashboard" element={<ProtectedRoute ownerOnly><OwnerDashboardPage /></ProtectedRoute>} />
           <Route path="/dashboard/add-property" element={<ProtectedRoute ownerOnly><AddPropertyPage /></ProtectedRoute>} />
           <Route path="/dashboard/edit-property/:id" element={<ProtectedRoute ownerOnly><EditPropertyPage /></ProtectedRoute>} />
+          <Route path="/dashboard/bookings" element={<ProtectedRoute ownerOnly><OwnerBookingsPage /></ProtectedRoute>} />
+          <Route path="/dashboard/inquiries" element={<ProtectedRoute ownerOnly><OwnerInquiriesPage /></ProtectedRoute>} />
+          <Route path="/dashboard/notifications" element={<ProtectedRoute ownerOnly><NotificationsPage /></ProtectedRoute>} />
           
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

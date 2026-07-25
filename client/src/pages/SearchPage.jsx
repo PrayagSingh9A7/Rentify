@@ -10,27 +10,39 @@ export default function SearchPage() {
   const [searchParams] = useSearchParams();
   const { properties, loading, pagination, filters, setFilters, setPage, fetchProperties } = usePropertyStore();
 
+  const legacyTypes = {
+    pg: 'Apartment',
+    flat: 'Apartment',
+    room: 'Independent Floor',
+    villa: 'Villa',
+    studio: 'Studio Apartment',
+    hostel: 'Apartment',
+  };
+
   // Sync URL params to filters on mount
   useEffect(() => {
     const updates = {};
-    ['search', 'city', 'type', 'minRent', 'maxRent', 'furnishing', 'genderPreference'].forEach((k) => {
-      const v = searchParams.get(k);
-      if (v) updates[k] = v;
+    ['search', 'city', 'propertyType', 'minRent', 'maxRent', 'furnishing', 'genderPreference'].forEach((key) => {
+      const value = searchParams.get(key);
+      if (value) updates[key] = value;
     });
+    const legacyType = searchParams.get('type');
+    if (legacyType && !updates.propertyType) updates.propertyType = legacyTypes[legacyType] || legacyType;
     if (Object.keys(updates).length) setFilters(updates);
     else fetchProperties();
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
-    fetchProperties();
-  }, [filters]);
+    const timeout = window.setTimeout(() => fetchProperties(), 300);
+    return () => window.clearTimeout(timeout);
+  }, [filters, fetchProperties]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 min-h-screen">
       <div className="mb-8">
         <h1 className="font-display text-3xl font-bold mb-1">Find Your Home</h1>
         <p className="text-text-secondary text-sm">
-          {pagination.total ? `${pagination.total} properties found` : 'Search and filter to find your perfect match'}
+          {pagination?.total ? `${pagination.total} properties found` : 'Search and filter to find your perfect match'}
         </p>
       </div>
 
@@ -54,7 +66,7 @@ export default function SearchPage() {
           </div>
 
           {/* Pagination */}
-          {pagination.pages > 1 && (
+          {pagination?.pages > 1 && (
             <div className="flex justify-center items-center gap-2 mt-12">
               <button
                 onClick={() => setPage(filters.page - 1)}
@@ -63,7 +75,7 @@ export default function SearchPage() {
               >
                 ← Prev
               </button>
-              {Array.from({ length: Math.min(pagination.pages, 7) }, (_, i) => i + 1).map((p) => (
+              {Array.from({ length: Math.min(pagination?.pages || 1, 7) }, (_, i) => i + 1).map((p) => (
                 <button
                   key={p}
                   onClick={() => setPage(p)}
@@ -76,7 +88,7 @@ export default function SearchPage() {
               ))}
               <button
                 onClick={() => setPage(filters.page + 1)}
-                disabled={filters.page >= pagination.pages}
+                disabled={filters.page >= (pagination?.pages || 1)}
                 className="btn-secondary text-sm py-2 px-4 disabled:opacity-40"
               >
                 Next →

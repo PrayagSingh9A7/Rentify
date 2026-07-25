@@ -15,25 +15,34 @@ export default function Footer() {
             <p className="text-sm text-white/50 leading-relaxed max-w-xs">
               India's most trusted rental platform for students, working professionals and families. Find verified PGs, flats and rooms near you.
             </p>
-            <div className="flex gap-3 mt-6">
-              {['App Store', 'Google Play'].map((store) => (
-                <button key={store} className="px-4 py-2 rounded-xl bg-white/10 text-xs text-white/70 hover:bg-white/15 transition-colors">
-                  {store}
-                </button>
-              ))}
-            </div>
+            
+<p className="mt-4 text-sm text-accent font-medium">
+  🚀 Mobile app launching soon on Android & iOS.
+</p>
+
+<div className="flex gap-3 mt-6">
+  {['Android App', 'iOS App'].map((store) => (
+    <button
+      key={store}
+      disabled
+      className="px-4 py-2 rounded-xl bg-white/10 text-xs text-white/60 cursor-not-allowed"
+    >
+      {store}
+    </button>
+  ))}
+</div>
           </div>
 
           <div>
             <h4 className="font-semibold text-sm mb-4 text-white/80">Explore</h4>
             <ul className="space-y-3">
               {[
-                ['Search Properties', '/search'],
-                ['PG / Hostel', '/search?type=pg'],
-                ['Flats', '/search?type=flat'],
-                ['Rooms', '/search?type=room'],
-                ['AI Advisor', '/ai-advisor'],
-              ].map(([label, to]) => (
+  ['Search Properties', '/search'],
+  ['Apartments', '/search?type=Apartment'],
+  ['Villas', '/search?type=Villa'],
+  ['Independent Houses', '/search?type=Independent%20House'],
+  ['AI Property Advisor', '/ai-advisor'],
+].map(([label, to]) => (
                 <li key={to}>
                   <Link to={to} className="text-sm text-white/50 hover:text-white transition-colors">{label}</Link>
                 </li>
@@ -44,7 +53,7 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold text-sm mb-4 text-white/80">Company</h4>
             <ul className="space-y-3">
-              {['About Us', 'Blog', 'Careers', 'Press', 'Contact', 'Privacy Policy', 'Terms of Use'].map((item) => (
+              {['About Us',  'Contact', 'Privacy Policy', 'Terms of Use'].map((item) => (
                 <li key={item}>
                   <span className="text-sm text-white/50 hover:text-white cursor-pointer transition-colors">{item}</span>
                 </li>

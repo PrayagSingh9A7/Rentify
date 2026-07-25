@@ -3,6 +3,9 @@ import crypto from 'crypto';
 import User from '../models/User.js';
 import { sendEmail } from '../utils/email.js';
 
+const publicRoles = new Set(['tenant', 'owner']);
+const genericResetMessage = 'If an account exists for that email, a password reset link has been sent';
+
 const generateToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '30d' });
 
@@ -18,10 +21,17 @@ const sendTokenResponse = (user, statusCode, res) => {
 export const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ success: false, message: 'Name, email, and password are required' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+    }
+    const safeRole = publicRoles.has(role) ? role : 'tenant';
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ success: false, message: 'Email already registered' });
 
-    const user = await User.create({ name, email, password, role: role || 'tenant' });
+    const user = await User.create({ name, email, password, role: safeRole });
     sendTokenResponse(user, 201, res);
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -58,7 +68,7 @@ export const getMe = async (req, res) => {
 export const forgotPassword = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
-    if (!user) return res.status(404).json({ success: false, message: 'No user with that email' });
+    if (!user) return res.json({ success: true, message: genericResetMessage });
 
     const resetToken = crypto.randomBytes(20).toString('hex');
     user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
@@ -70,7 +80,7 @@ export const forgotPassword = async (req, res) => {
 
     try {
       await sendEmail({ to: user.email, subject: 'Rentify Password Reset', text: message });
-      res.json({ success: true, message: 'Password reset email sent' });
+      res.json({ success: true, message: genericResetMessage });
     } catch {
       user.resetPasswordToken = undefined;
       user.resetPasswordExpire = undefined;
@@ -84,6 +94,9 @@ export const forgotPassword = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
   try {
+    if (!req.body.password || req.body.password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+    }
     const resetPasswordToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
     const user = await User.findOne({
       resetPasswordToken,
@@ -104,6 +117,12 @@ export const resetPassword = async (req, res) => {
 
 export const updatePassword = async (req, res) => {
   try {
+    if (!req.body.currentPassword || !req.body.newPassword) {
+      return res.status(400).json({ success: false, message: 'Current password and new password are required' });
+    }
+    if (req.body.newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'New password must be at least 6 characters' });
+    }
     const user = await User.findById(req.user.id);
     if (!(await user.matchPassword(req.body.currentPassword)))
       return res.status(401).json({ success: false, message: 'Current password is incorrect' });

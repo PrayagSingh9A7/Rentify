@@ -29,9 +29,15 @@ export default function MaintenancePage() {
   useEffect(() => {
     api.get('/maintenance').then(({ data }) => setComplaints(data.data)).catch(() => {}).finally(() => setLoading(false));
     if (user?.role === 'tenant') {
-      api.get('/users/recently-viewed').then(({ data }) => setProperties(data.data?.slice(0, 10) || [])).catch(() => {});
+      api.get('/bookings/my').then(({ data }) => {
+        const bookedProperties = (data.data || [])
+          .filter((booking) => ['approved', 'completed'].includes(booking.status) && booking.property)
+          .map((booking) => booking.property);
+        const unique = Array.from(new Map(bookedProperties.map((property) => [property._id, property])).values());
+        setProperties(unique);
+      }).catch(() => {});
     }
-  }, []);
+  }, [user?.role]);
 
   const submitComplaint = async (e) => {
     e.preventDefault();
@@ -61,7 +67,7 @@ export default function MaintenancePage() {
           <h1 className="font-display text-3xl font-bold">Maintenance</h1>
           <p className="text-text-secondary text-sm mt-1">Track and manage maintenance requests</p>
         </div>
-        {user?.role === 'tenant' && (
+        {user?.role === 'tenant' && properties.length > 0 && (
           <button onClick={() => setShowForm(true)} className="btn-primary">+ File Complaint</button>
         )}
       </div>
@@ -90,15 +96,13 @@ export default function MaintenancePage() {
                   {['low', 'medium', 'high', 'urgent'].map((p) => <option key={p} value={p} className="capitalize">{p}</option>)}
                 </select>
               </div>
-              {properties.length > 0 && (
-                <div className="col-span-2">
-                  <label className="block text-xs font-semibold text-text-secondary mb-1.5">Property</label>
-                  <select required value={form.propertyId} onChange={(e) => setForm({ ...form, propertyId: e.target.value })} className="input-field">
-                    <option value="">Select property</option>
-                    {properties.map((p) => <option key={p._id} value={p._id}>{p.title}</option>)}
-                  </select>
-                </div>
-              )}
+              <div className="col-span-2">
+                <label className="block text-xs font-semibold text-text-secondary mb-1.5">Property</label>
+                <select required value={form.propertyId} onChange={(e) => setForm({ ...form, propertyId: e.target.value })} className="input-field">
+                  <option value="">Select property</option>
+                  {properties.map((p) => <option key={p._id} value={p._id}>{p.title}</option>)}
+                </select>
+              </div>
               <div className="col-span-2">
                 <label className="block text-xs font-semibold text-text-secondary mb-1.5">Description *</label>
                 <textarea required rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Describe the issue in detail..." className="input-field resize-none" />
@@ -122,7 +126,7 @@ export default function MaintenancePage() {
           <p className="text-5xl mb-3">🔧</p>
           <h3 className="font-display text-xl font-semibold mb-2">No complaints yet</h3>
           <p className="text-text-muted text-sm">
-            {user?.role === 'tenant' ? 'File a maintenance request when something needs fixing' : 'No maintenance requests from your tenants'}
+            {user?.role === 'tenant' ? 'Approved bookings will appear here when you need to file a maintenance request' : 'No maintenance requests from your tenants'}
           </p>
         </div>
       ) : (
@@ -146,7 +150,7 @@ export default function MaintenancePage() {
                   <span>🕐 {format(new Date(c.createdAt), 'MMM d, yyyy')}</span>
                   {c.tenant && <span>👤 {c.tenant.name}</span>}
                 </div>
-                {user?.role === 'owner' && c.status !== 'closed' && (
+                {['owner', 'admin'].includes(user?.role) && c.status !== 'closed' && (
                   <div className="flex gap-2">
                     {c.status === 'open' && (
                       <button onClick={() => updateStatus(c._id, 'in-progress')} className="text-xs px-3 py-1.5 rounded-xl bg-yellow-50 text-yellow-700 border border-yellow-200 hover:bg-yellow-100 transition-colors">

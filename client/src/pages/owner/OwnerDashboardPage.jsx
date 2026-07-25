@@ -5,6 +5,9 @@ import { format } from 'date-fns';
 import api from '../../services/api';
 import usePropertyStore from '../../store/propertyStore';
 import toast from 'react-hot-toast';
+import useBookingStore from '../../store/bookingStore';
+import useInquiryStore from '../../store/inquiryStore';
+import useNotificationStore from '../../store/notificationStore';
 
 function StatCard({ icon, label, value, sub, color = 'accent' }) {
   return (
@@ -24,16 +27,37 @@ export default function OwnerDashboardPage() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const { deleteProperty } = usePropertyStore();
+  const {
+  ownerBookings,
+  fetchOwnerBookings,
+  approveBooking,
+  rejectBooking,
+} = useBookingStore();
+
+const {
+  ownerInquiries,
+  fetchOwnerInquiries,
+} = useInquiryStore();
+
+const {
+  notifications,
+  fetchNotifications,
+} = useNotificationStore();
 
   useEffect(() => {
-    Promise.all([
-      api.get('/users/dashboard'),
-      api.get('/properties/owner/my-listings'),
-    ]).then(([statsRes, listRes]) => {
+   Promise.all([
+  api.get('/users/dashboard'),
+  api.get('/properties/owner/my-listings'),
+
+  fetchOwnerBookings(),
+  fetchOwnerInquiries(),
+  fetchNotifications()
+
+]).then(([statsRes, listRes]) => {
       setStats(statsRes.data.data);
       setListings(listRes.data.data);
     }).catch(() => toast.error('Failed to load dashboard')).finally(() => setLoading(false));
-  }, []);
+  }, [fetchNotifications, fetchOwnerBookings, fetchOwnerInquiries]);
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this property?')) return;
@@ -72,9 +96,36 @@ export default function OwnerDashboardPage() {
           <h1 className="font-display text-3xl font-bold">Owner Dashboard</h1>
           <p className="text-text-secondary text-sm mt-1">Manage your listings and track performance</p>
         </div>
-        <Link to="/dashboard/add-property" className="btn-primary flex items-center gap-2">
-          <span>+</span> Add New Property
-        </Link>
+       <div className="flex gap-3 flex-wrap">
+
+    <Link
+        to="/dashboard/bookings"
+        className="btn-secondary"
+    >
+        📅 Bookings
+    </Link>
+
+    <Link
+        to="/dashboard/inquiries"
+        className="btn-secondary"
+    >
+        💬 Inquiries
+    </Link>
+    <Link
+        to="/dashboard/notifications"
+        className="btn-secondary"
+    >
+        🔔 Notifications
+    </Link>
+
+    <Link
+        to="/dashboard/add-property"
+        className="btn-primary"
+    >
+        + Add Property
+    </Link>
+
+</div>
       </div>
 
       {/* Stats */}
@@ -83,74 +134,539 @@ export default function OwnerDashboardPage() {
         <StatCard icon="✅" label="Active Listings" value={stats?.activeListings || 0} sub="Currently available" />
         <StatCard icon="👁️" label="Total Views" value={stats?.totalViews?.toLocaleString() || 0} />
         <StatCard icon="📩" label="Inquiries" value={stats?.totalInquiries || 0} sub="This month" />
+        <StatCard
+icon="🔔"
+label="Notifications"
+value={notifications.length}
+/>
+<div className="grid grid-cols-2 gap-4 mb-8">
+
+<StatCard
+icon="📅"
+label="Bookings"
+value={ownerBookings.length}
+/>
+
+<StatCard
+icon="💬"
+label="Messages"
+value={ownerInquiries.length}
+/>
+
+</div>
       </div>
 
       {/* Listings */}
-      <div className="card overflow-hidden">
-        <div className="p-5 border-b border-surface-secondary flex items-center justify-between">
-          <h2 className="font-semibold text-lg">Your Listings</h2>
-          <span className="text-sm text-text-muted">{listings.length} properties</span>
+<div className="card overflow-hidden">
+
+  <div className="p-5 border-b border-surface-secondary flex items-center justify-between">
+
+    <div>
+
+      <h2 className="font-semibold text-lg">
+        Your Listings
+      </h2>
+
+      <p className="text-xs text-text-muted mt-1">
+        Manage all your listed properties
+      </p>
+
+    </div>
+
+    <span className="badge bg-accent/10 text-accent">
+
+      {listings.length} Properties
+
+    </span>
+
+  </div>
+
+  {
+    listings.length === 0 ? (
+
+      <div className="text-center py-20">
+
+        <div className="text-6xl mb-5">
+
+          🏠
+
         </div>
 
-        {listings.length === 0 ? (
-          <div className="text-center py-20 px-4">
-            <p className="text-5xl mb-3">🏠</p>
-            <h3 className="font-display text-xl font-semibold mb-2">No listings yet</h3>
-            <p className="text-text-muted text-sm mb-6">Add your first property to start receiving inquiries</p>
-            <Link to="/dashboard/add-property" className="btn-primary">Add Property</Link>
-          </div>
-        ) : (
-          <div className="divide-y divide-surface-secondary">
-            {listings.map((property) => (
-              <motion.div
-                key={property._id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex items-center gap-4 p-4 hover:bg-surface-secondary/50 transition-colors"
-              >
-                {/* Image */}
-                <div className="w-20 h-16 rounded-2xl overflow-hidden bg-surface-tertiary shrink-0">
-                  {property.images?.[0]?.url
-                    ? <img src={property.images[0].url} alt={property.title} className="w-full h-full object-cover" />
-                    : <div className="w-full h-full flex items-center justify-center text-2xl">🏠</div>
-                  }
-                </div>
+        <h3 className="text-xl font-bold">
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm truncate">{property.title}</p>
-                  <p className="text-xs text-text-muted">{property.address?.locality}, {property.address?.city}</p>
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className="text-xs font-medium text-accent">₹{property.rent?.toLocaleString()}/mo</span>
-                    <span className={`badge text-xs ${property.isAvailable ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                      {property.isAvailable ? '● Available' : '● Occupied'}
-                    </span>
-                    <span className="text-xs text-text-muted">{property.viewCount || 0} views</span>
-                  </div>
-                </div>
+          No Properties Found
 
-                {/* Actions */}
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => handleToggleAvailability(property._id, property.isAvailable)}
-                    className={`text-xs px-3 py-1.5 rounded-xl border transition-all ${
-                      property.isAvailable
-                        ? 'border-red-200 text-red-600 hover:bg-red-50'
-                        : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50'
-                    }`}
-                  >
-                    {property.isAvailable ? 'Mark Occupied' : 'Mark Available'}
-                  </button>
-                  <Link to={`/dashboard/edit-property/${property._id}`} className="btn-secondary text-xs py-1.5 px-3">Edit</Link>
-                  <button onClick={() => handleDelete(property._id)} className="text-xs px-3 py-1.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition-colors">
-                    Delete
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
+        </h3>
+
+        <p className="text-sm text-text-muted mt-2 mb-6">
+
+          Start by adding your first property.
+
+        </p>
+
+        <Link
+          to="/dashboard/add-property"
+          className="btn-primary"
+        >
+          Add Property
+        </Link>
+
       </div>
+
+    ) : (
+
+      <div className="divide-y divide-surface-secondary">
+
+        {
+
+          listings.map((property)=>(
+
+            <motion.div
+
+              key={property._id}
+
+              whileHover={{scale:1.01}}
+
+              className="p-5 flex gap-5 items-center"
+
+            >
+
+              {/* IMAGE */}
+
+              <div className="w-28 h-24 rounded-2xl overflow-hidden bg-surface-secondary shrink-0">
+
+                {
+
+                  property.images?.length ?
+
+                  (
+
+                    <img
+
+                      src={property.images[0].url}
+
+                      className="w-full h-full object-cover"
+
+                    />
+
+                  )
+
+                  :
+
+                  (
+
+                    <div className="flex items-center justify-center h-full text-4xl">
+
+                      🏠
+
+                    </div>
+
+                  )
+
+                }
+
+              </div>
+
+              {/* INFO */}
+
+              <div className="flex-1">
+
+                <div className="flex items-center gap-2 flex-wrap">
+
+                  <h3 className="font-bold text-lg">
+
+                    {property.title}
+
+                  </h3>
+
+                  <span className={`badge ${
+                    property.isAvailable
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}>
+
+                    {property.isAvailable
+                      ? "Available"
+                      : "Occupied"}
+
+                  </span>
+
+                </div>
+
+                <p className="text-sm text-text-muted mt-1">
+
+                  {property.address?.locality},{" "}
+                  {property.address?.city}
+
+                </p>
+
+                <div className="flex gap-5 mt-3 text-sm flex-wrap">
+
+                  <span>
+
+                    💰 ₹{property.rent?.toLocaleString()}/month
+
+                  </span>
+
+                  <span>
+
+                    👁 {property.viewCount || 0} Views
+
+                  </span>
+
+                  <span>
+
+                    📅 {property.bookingCount || 0} Bookings
+
+                  </span>
+
+                  <span>
+
+                    💬 {property.inquiryCount || 0} Inquiries
+
+                  </span>
+
+                </div>
+
+              </div>
+
+              {/* ACTIONS */}
+
+              <div className="flex flex-col gap-2">
+
+                <Link
+
+                  to={`/property/${property._id}`}
+
+                  className="btn-primary text-xs text-center"
+
+                >
+
+                  View
+
+                </Link>
+
+                <Link
+
+                  to={`/dashboard/edit-property/${property._id}`}
+
+                  className="btn-secondary text-xs text-center"
+
+                >
+
+                  Edit
+
+                </Link>
+
+                <button
+
+                  onClick={()=>
+
+                    handleToggleAvailability(
+
+                      property._id,
+
+                      property.isAvailable
+
+                    )
+
+                  }
+
+                  className="btn-secondary text-xs"
+
+                >
+
+                  {
+
+                    property.isAvailable
+
+                    ?
+
+                    "Mark Occupied"
+
+                    :
+
+                    "Mark Available"
+
+                  }
+
+                </button>
+
+                <button
+
+                  onClick={()=>
+
+                    handleDelete(property._id)
+
+                  }
+
+                  className="rounded-xl bg-red-500 text-white py-2 text-xs hover:bg-red-600"
+
+                >
+
+                  Delete
+
+                </button>
+
+              </div>
+
+            </motion.div>
+
+          ))
+
+        }
+
+      </div>
+
+    )
+
+  }
+
+</div>
+
+{/* Recent Bookings */}
+
+<div className="card mt-8">
+
+ <div className="p-5 border-b flex items-center justify-between">
+
+    <h2 className="font-bold text-lg">
+
+        Recent Booking Requests
+
+    </h2>
+
+    <Link
+
+        to="/dashboard/bookings"
+
+        className="text-accent text-sm font-medium hover:underline"
+
+    >
+
+        View All →
+
+    </Link>
+
+</div>
+
+  {
+
+    ownerBookings.length===0
+
+    ?
+
+    (
+
+      <div className="p-10 text-center text-text-muted">
+
+        No booking requests yet.
+
+      </div>
+
+    )
+
+    :
+
+    ownerBookings.slice(0,5).map((booking)=>(
+
+      <div
+
+        key={booking._id}
+
+        className="flex items-center justify-between p-5 border-b"
+
+      >
+
+        <div>
+
+          <h3 className="font-semibold">
+
+            {booking.tenant?.name}
+
+          </h3>
+
+          <p className="text-sm text-text-muted">
+
+            {booking.property?.title}
+
+          </p>
+
+          <p className="text-xs mt-1">
+
+            {booking.visitDate}
+
+          </p>
+
+        </div>
+
+        <div className="flex gap-2">
+
+          <button
+
+            onClick={()=>
+
+              approveBooking(booking._id)
+
+            }
+
+            className="px-3 py-2 rounded-lg bg-green-600 text-white"
+
+          >
+
+            Approve
+
+          </button>
+
+          <button
+
+            onClick={()=>
+
+              rejectBooking(booking._id)
+
+            }
+
+            className="px-3 py-2 rounded-lg bg-red-600 text-white"
+
+          >
+
+            Reject
+
+          </button>
+
+        </div>
+
+      </div>
+
+    ))
+
+  }
+
+</div>
+
+{/* Recent Inquiries */}
+
+<div className="card mt-8">
+
+  <div className="p-5 border-b">
+
+    <h2 className="font-bold text-lg">
+
+      Recent Inquiries
+
+    </h2>
+
+  </div>
+
+  {
+
+    ownerInquiries.length===0
+
+    ?
+
+    (
+
+      <div className="p-10 text-center text-text-muted">
+
+        No inquiries found.
+
+      </div>
+
+    )
+
+    :
+
+    ownerInquiries.slice(0,5).map((item)=>(
+
+      <div
+
+        key={item._id}
+
+        className="border-b p-5"
+
+      >
+
+        <h3 className="font-semibold">
+
+          {item.user?.name}
+
+        </h3>
+
+        <p className="text-sm mt-2">
+
+          {item.message}
+
+        </p>
+
+      </div>
+
+    ))
+
+  }
+
+</div>
+
+{/* Notifications */}
+
+<div className="card mt-8 mb-10">
+
+  <div className="p-5 border-b">
+
+    <h2 className="font-bold text-lg">
+
+      Latest Notifications
+
+    </h2>
+
+  </div>
+
+  {
+
+    notifications.length===0
+
+    ?
+
+    (
+
+      <div className="p-10 text-center text-text-muted">
+
+        No notifications.
+
+      </div>
+
+    )
+
+    :
+
+    notifications.slice(0,5).map((item)=>(
+
+      <div
+
+        key={item._id}
+
+        className="border-b p-5"
+
+      >
+
+        <h3 className="font-semibold">
+
+          {item.title}
+
+        </h3>
+
+        <p className="text-sm text-text-muted mt-1">
+
+          {item.message}
+
+        </p>
+
+      </div>
+
+    ))
+
+  }
+
+</div>
     </div>
   );
 }

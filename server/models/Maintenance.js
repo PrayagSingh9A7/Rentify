@@ -27,4 +27,8 @@ const maintenanceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+maintenanceSchema.index({ owner: 1, createdAt: -1 });
+maintenanceSchema.index({ tenant: 1, createdAt: -1 });
+maintenanceSchema.index({ property: 1, createdAt: -1 });
+
 export default mongoose.model('Maintenance', maintenanceSchema);

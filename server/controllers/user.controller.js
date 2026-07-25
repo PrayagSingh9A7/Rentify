@@ -1,5 +1,7 @@
 import User from '../models/User.js';
 import Property from '../models/Property.js';
+import Booking from '../models/Booking.js';
+import Inquiry from '../models/Inquiry.js';
 
 export const updateProfile = async (req, res) => {
   try {
@@ -47,13 +49,18 @@ export const getPublicProfile = async (req, res) => {
 
 export const getDashboardStats = async (req, res) => {
   try {
-    if (req.user.role !== 'owner') return res.status(403).json({ success: false, message: 'Not authorized' });
+    if (!['owner', 'admin'].includes(req.user.role)) return res.status(403).json({ success: false, message: 'Not authorized' });
 
-    const properties = await Property.find({ owner: req.user.id });
+    const scopedQuery = req.user.role === 'admin' ? {} : { owner: req.user.id };
+    const properties = await Property.find(scopedQuery).sort('-createdAt').lean();
     const totalViews = properties.reduce((sum, p) => sum + p.viewCount, 0);
-    const totalInquiries = properties.reduce((sum, p) => sum + p.inquiryCount, 0);
+    const totalInquiries = await Inquiry.countDocuments(scopedQuery);
+    const totalBookings = await Booking.countDocuments(scopedQuery);
+    const pendingBookings = await Booking.countDocuments({ ...scopedQuery, status: 'pending' });
+    const approvedBookings = await Booking.countDocuments({ ...scopedQuery, status: 'approved' });
     const activeListings = properties.filter((p) => p.isAvailable).length;
-    const totalRevenue = properties.reduce((sum, p) => sum + (p.isAvailable ? 0 : p.rent), 0);
+    const completedBookings = await Booking.find({ ...scopedQuery, status: 'completed' }).populate('property', 'rent').lean();
+    const totalRevenue = completedBookings.reduce((sum, booking) => sum + (booking.property?.rent || 0), 0);
 
     res.json({
       success: true,
@@ -62,6 +69,9 @@ export const getDashboardStats = async (req, res) => {
         activeListings,
         totalViews,
         totalInquiries,
+        totalBookings,
+        pendingBookings,
+        approvedBookings,
         totalRevenue,
         properties: properties.slice(0, 5),
       },

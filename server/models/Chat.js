@@ -25,5 +25,10 @@ const conversationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+messageSchema.index({ conversation: 1, createdAt: -1 });
+messageSchema.index({ conversation: 1, sender: 1, isRead: 1 });
+conversationSchema.index({ participants: 1, lastMessageAt: -1 });
+conversationSchema.index({ property: 1, participants: 1 });
+
 export const Message = mongoose.model('Message', messageSchema);
 export const Conversation = mongoose.model('Conversation', conversationSchema);

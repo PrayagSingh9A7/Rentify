@@ -13,14 +13,14 @@ let owner = await User.findOne({ email: 'owner@test.com' });
 
 if (!owner) {
   owner = await User.create({
-    name: 'Demo Owner',
+    name: 'Rentify Seed Owner',
     email: 'owner@test.com',
     password: '12345678',
     role: 'owner',
   });
 }
 
-// Dummy datasets
+// Seed datasets
 const cities = [
   'Delhi',
   'Noida',

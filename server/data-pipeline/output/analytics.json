@@ -1,0 +1,91 @@
+{
+  "totalProperties": 16158,
+  "cities": {
+    "Mumbai": 5092,
+    "Delhi": 4628,
+    "Pune": 3269,
+    "Chennai": 890,
+    "Bangalore": 885,
+    "Hyderabad": 865,
+    "Kolkata": 523,
+    "Hisar": 6
+  },
+  "propertyTypes": {
+    "Apartment": 12484,
+    "Independent Floor": 2631,
+    "Villa": 440,
+    "Independent House": 325,
+    "Studio Apartment": 276,
+    "Penthouse": 2
+  },
+  "bhkDistribution": {
+    "2 BHK": 5271,
+    "1 BHK": 3345,
+    "Unknown": 3261,
+    "3 BHK": 2925,
+    "4 BHK": 945,
+    "5 BHK": 380,
+    "6 BHK": 20,
+    "8 BHK": 3,
+    "9 BHK": 3,
+    "7 BHK": 2,
+    "10 BHK": 2,
+    "12 BHK": 1
+  },
+  "furnishingDistribution": {
+    "Semi-furnished": 6872,
+    "Unfurnished": 6310,
+    "Furnished": 2976
+  },
+  "priceCategories": {
+    "Affordable": 5821,
+    "Premium": 3404,
+    "Ultra Luxury": 2751,
+    "Budget": 2158,
+    "Luxury": 2024
+  },
+  "topAmenities": {
+    "AC": 9341,
+    "Furnished": 7503,
+    "SemiFurnished": 3245,
+    "Garden": 2077,
+    "Lift": 1524,
+    "Gym": 1451,
+    "Security": 1395,
+    "PowerBackup": 1280,
+    "Balcony": 1210,
+    "SwimmingPool": 1138,
+    "ClubHouse": 1071,
+    "Parking": 1054,
+    "Intercom": 880,
+    "CCTV": 681,
+    "JoggingTrack": 479,
+    "ModularKitchen": 366,
+    "WiFi": 338,
+    "MetroNearby": 236,
+    "WaterSupply": 219,
+    "ChildrenPlayArea": 28,
+    "FireSafety": 3,
+    "PetFriendly": 1
+  },
+  "averageRentByCity": {
+    "Delhi": 187361,
+    "Mumbai": 67312,
+    "Hisar": 53167,
+    "Bangalore": 24980,
+    "Pune": 22396,
+    "Chennai": 21614,
+    "Hyderabad": 20511,
+    "Kolkata": 11658
+  },
+  "rent": {
+    "min": 1200,
+    "max": 3500000,
+    "average": 83462
+  },
+  "area": {
+    "min": 10,
+    "max": 14521,
+    "average": 1470
+  }
+}

@@ -59,7 +59,7 @@ const useAuthStore = create((set, get) => ({
     set({ user: updated });
   },
 
-  isOwner: () => get().user?.role === 'owner',
+  isOwner: () => ['owner', 'admin'].includes(get().user?.role),
   isAuthenticated: () => !!get().token,
 }));
 

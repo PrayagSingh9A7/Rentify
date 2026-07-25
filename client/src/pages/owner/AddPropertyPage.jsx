@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import { motion } from 'framer-motion';
@@ -9,7 +9,7 @@ import usePropertyStore from '../../store/propertyStore';
 const AMENITY_OPTIONS = ['WiFi', 'AC', 'Parking', 'Gym', 'Pool', 'Laundry', 'Security', 'Elevator', 'Power Backup', 'Water 24/7', 'Cooking Allowed', 'TV', 'Balcony', 'CCTV'];
 
 const INITIAL_FORM = {
-  title: '', description: '', type: 'pg', rent: '', deposit: '', maintenanceCharges: '',
+  title: '', description: '', propertyType: 'Apartment', rent: '', deposit: '', maintenanceCharges: '',
   furnishing: 'unfurnished', genderPreference: 'any', occupancy: 'single',
   bhk: 1, bathrooms: 1, area: '', floorNumber: '', totalFloors: '',
   availableFrom: '', noticePeriod: 30, virtualTourUrl: '', isAvailable: true,
@@ -28,12 +28,26 @@ export default function AddPropertyPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const { createProperty, updateProperty, fetchProperty } = usePropertyStore();
+  const imagePreviews = useMemo(() => images.map((image) => ({ image, url: URL.createObjectURL(image) })), [images]);
+
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach((preview) => URL.revokeObjectURL(preview.url));
+    };
+  }, [imagePreviews]);
 
   useEffect(() => {
     if (isEditing) {
       fetchProperty(id).then((p) => {
         if (p) {
-          setForm({ ...INITIAL_FORM, ...p, address: p.address || INITIAL_FORM.address, amenities: p.amenities || [], rules: p.rules || [] });
+          setForm({
+            ...INITIAL_FORM,
+            ...p,
+            propertyType: p.propertyType || p.type || INITIAL_FORM.propertyType,
+            address: p.address || INITIAL_FORM.address,
+            amenities: p.amenities || [],
+            rules: p.rules || [],
+          });
           setExistingImages(p.images || []);
         }
       });
@@ -147,9 +161,9 @@ export default function AddPropertyPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-text-secondary mb-1.5">Type *</label>
-                  <select required {...fieldProps('type')} className="input-field">
-                    {['pg', 'flat', 'room', 'villa', 'studio', 'hostel'].map((t) => (
-                      <option key={t} value={t}>{t.toUpperCase()}</option>
+                  <select required {...fieldProps('propertyType')} className="input-field">
+                    {['Apartment', 'Independent Floor', 'Studio Apartment', 'Villa', 'Independent House'].map((t) => (
+                      <option key={t} value={t}>{t}</option>
                     ))}
                   </select>
                 </div>
@@ -289,9 +303,9 @@ export default function AddPropertyPage() {
                 <div>
                   <p className="text-xs font-semibold text-text-secondary mb-2">New photos ({images.length})</p>
                   <div className="flex gap-2 flex-wrap">
-                    {images.map((img, i) => (
+                    {imagePreviews.map((preview, i) => (
                       <div key={i} className="relative w-20 h-20">
-                        <img src={URL.createObjectURL(img)} alt="" className="w-full h-full object-cover rounded-2xl" />
+                        <img src={preview.url} alt="" className="w-full h-full object-cover rounded-2xl" />
                         <button type="button" onClick={() => setImages((imgs) => imgs.filter((_, j) => j !== i))}
                           className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center">✕</button>
                       </div>
@@ -324,7 +338,7 @@ export default function AddPropertyPage() {
               <h2 className="font-semibold text-lg">Review & Submit</h2>
               <div className="bg-surface-secondary rounded-2xl p-5 space-y-3">
                 <div className="flex justify-between text-sm"><span className="text-text-muted">Title</span><span className="font-medium text-right max-w-xs">{form.title || '—'}</span></div>
-                <div className="flex justify-between text-sm"><span className="text-text-muted">Type</span><span className="font-medium uppercase">{form.type}</span></div>
+                <div className="flex justify-between text-sm"><span className="text-text-muted">Type</span><span className="font-medium">{form.propertyType}</span></div>
                 <div className="flex justify-between text-sm"><span className="text-text-muted">Location</span><span className="font-medium">{form.address.locality}, {form.address.city}</span></div>
                 <div className="flex justify-between text-sm"><span className="text-text-muted">Rent</span><span className="font-bold text-accent">₹{Number(form.rent).toLocaleString()}/month</span></div>
                 <div className="flex justify-between text-sm"><span className="text-text-muted">Furnishing</span><span className="font-medium capitalize">{form.furnishing}</span></div>

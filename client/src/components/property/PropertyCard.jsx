@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import useAuthStore from '../../store/authStore';
 import usePropertyStore from '../../store/propertyStore';
 import toast from 'react-hot-toast';
+import { getPropertyImageUrls, getPropertyType } from '../../utils/propertyImages';
 
 const AMENITY_ICONS = {
   wifi: '📶', ac: '❄️', parking: '🅿️', gym: '🏋️', pool: '🏊', laundry: '🧺',
@@ -16,6 +17,7 @@ export default function PropertyCard({ property, className = '' }) {
   const [saving, setSaving] = useState(false);
   const { user } = useAuthStore();
   const { toggleSave } = usePropertyStore();
+  const propertyType = getPropertyType(property);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -30,9 +32,7 @@ export default function PropertyCard({ property, className = '' }) {
     setSaving(false);
   };
 
-  const images = property.images?.length ? property.images.map((i) => i.url) : [
-    `https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&q=80`,
-  ];
+  const images = getPropertyImageUrls(property, 3);
 
   const typeColors = {
     pg: 'bg-purple-100 text-purple-700',
@@ -41,6 +41,11 @@ export default function PropertyCard({ property, className = '' }) {
     villa: 'bg-amber-100 text-amber-700',
     studio: 'bg-pink-100 text-pink-700',
     hostel: 'bg-orange-100 text-orange-700',
+    Apartment: 'bg-blue-100 text-blue-700',
+    'Independent Floor': 'bg-green-100 text-green-700',
+    Villa: 'bg-amber-100 text-amber-700',
+    'Studio Apartment': 'bg-pink-100 text-pink-700',
+    'Independent House': 'bg-purple-100 text-purple-700',
   };
 
   return (
@@ -56,13 +61,13 @@ export default function PropertyCard({ property, className = '' }) {
             src={images[imgIdx]}
             alt={property.title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&q=80'; }}
+            onError={(e) => { e.target.src = getPropertyImageUrls(property, imgIdx + 1)[imgIdx]; }}
           />
 
           {/* Badges */}
           <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap">
-            <span className={`badge text-xs font-semibold ${typeColors[property.type] || 'bg-gray-100 text-gray-700'}`}>
-              {property.type?.toUpperCase()}
+            <span className={`badge text-xs font-semibold ${typeColors[propertyType] || 'bg-gray-100 text-gray-700'}`}>
+              {propertyType}
             </span>
             {property.isVerified && (
               <span className="badge bg-emerald-100 text-emerald-700">✓ Verified</span>

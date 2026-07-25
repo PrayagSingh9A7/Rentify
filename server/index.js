@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
@@ -5,7 +6,6 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 
 import authRoutes from './routes/auth.routes.js';
@@ -16,9 +16,13 @@ import reviewRoutes from './routes/review.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import aiRoutes from './routes/ai.routes.js';
 import maintenanceRoutes from './routes/maintenance.routes.js';
+import inquiryRoutes from './routes/inquiry.routes.js';
+import bookingRoutes from "./routes/booking.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
 import { initSocket } from './sockets/socket.js';
+import { isProduction, validateEnv } from './config/env.js';
 
-dotenv.config();
+validateEnv();
 
 const app = express();
 const httpServer = createServer(app);
@@ -26,7 +30,7 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
   },
 });
@@ -49,6 +53,16 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { success: false, message: 'Too many authentication attempts, please try again later.' },
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/forgot-password', authLimiter);
+app.use('/api/auth/reset-password', authLimiter);
+
 // Attach io to request
 app.use((req, _res, next) => {
   req.io = io;
@@ -64,18 +78,21 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
-
+app.use('/api/inquiries', inquiryRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/notifications", notificationRoutes);
 // Health check
 app.get('/api/health', (_req, res) => {
-  res.json({ success: true, message: 'Rentify API is running 🏠', timestamp: new Date() });
+  res.json({ success: true, message: 'Rentify API is running', timestamp: new Date() });
 });
 
 // Error handler
 app.use((err, _req, res, _next) => {
   console.error(err.stack);
+  const statusCode = err.statusCode || 500;
   res.status(err.statusCode || 500).json({
     success: false,
-    message: err.message || 'Internal Server Error',
+    message: isProduction && statusCode === 500 ? 'Internal Server Error' : err.message || 'Internal Server Error',
   });
 });
 
@@ -87,13 +104,13 @@ const PORT = process.env.PORT || 5000;
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log('✅ MongoDB connected');
+    console.log('MongoDB connected');
     httpServer.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`Server running on port ${PORT}`);
     });
   })
   .catch((err) => {
-    console.error('❌ MongoDB connection error:', err);
+    console.error('MongoDB connection error:', err);
     process.exit(1);
   });
 
